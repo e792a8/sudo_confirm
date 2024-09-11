@@ -5,6 +5,8 @@
 
 #include <sudo_plugin.h>
 
+#define LOG_MSG_TYPE (SUDO_CONV_INFO_MSG | SUDO_CONV_PREFER_TTY)
+
 sudo_conv_t sudo_conv;
 sudo_printf_t sudo_log;
 char * const * sudo_settings;
@@ -72,13 +74,13 @@ approval_check(char * const command_info[], char * const run_argv[],
     struct sudo_conv_message msg;
     struct sudo_conv_reply repl;
 
-    sudo_log(SUDO_CONV_INFO_MSG,
+    sudo_log(LOG_MSG_TYPE,
              "Executing as uid %d(%s) and gid %d(%s) with sudo:\n\n   ",
              runas_uid, runas_user, runas_gid, runas_group);
     for(char * const *ui = run_argv; *ui != NULL; ui++) {
-        sudo_log(SUDO_CONV_INFO_MSG, " %s", *ui);
+        sudo_log(LOG_MSG_TYPE, " %s", *ui);
     }
-    sudo_log(SUDO_CONV_INFO_MSG, "\n\n");
+    sudo_log(LOG_MSG_TYPE, "\n\n");
 
     memset(&msg, 0, sizeof(msg));
     msg.msg_type = SUDO_CONV_PROMPT_ECHO_ON
@@ -92,7 +94,7 @@ approval_check(char * const command_info[], char * const run_argv[],
         && (strcmp(repl.reply, "y") == 0 || strcmp(repl.reply, "Y") == 0)) {
 	    return 1;
     }
-	sudo_log(SUDO_CONV_INFO_MSG, "Abort.\n");
+	sudo_log(LOG_MSG_TYPE, "Abort.\n");
     return 0;
 }
 
