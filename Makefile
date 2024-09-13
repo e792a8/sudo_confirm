@@ -1,4 +1,4 @@
-VERSION = 0.1.1
+VERSION = 0.2.0
 
 CC = gcc
 CFLAGS = -DPACKAGE_VERSION=\"$(VERSION)\" -shared -fPIC
