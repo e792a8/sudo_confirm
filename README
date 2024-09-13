@@ -3,6 +3,7 @@ sudo_confirm
 This sudo plugin gives you a final chance to check the actual command
 before executing it.
 
+
 INSTALL
 
 Run:
@@ -16,6 +17,20 @@ to enable this plugin:
     Plugin sudo_confirm sudo_confirm.so
 
 You may need to create /etc/sudo.conf if it does not already exist.
+
+
+CONFIGURE
+
+If you dislike typing a 'y' each time, add a 'yes' at the end of the Plugin
+line in sudo.conf like this:
+
+    Plugin sudo_confirm sudo_confirm.so yes
+
+If you even dislike typing Enter once more, add a 'noconfirm' at the end of
+the Plugin line:
+
+    Plugin sudo_confirm sudo_confirm.so noconfirm
+
 
 Q: Why I need this?
 
