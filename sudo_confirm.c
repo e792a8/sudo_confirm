@@ -15,6 +15,8 @@ int sudo_optind;
 char * const * sudo_argv;
 char * const * sudo_envp;
 char * const * sudo_plugin_options;
+int option_yes = 0;
+int option_noconfirm = 0;
 
 uid_t runas_uid;
 gid_t runas_gid;
@@ -47,6 +49,14 @@ approval_open(unsigned int version, sudo_conv_t conversation,
         }
         if (strncmp(*ui, "runas_group=", sizeof("runas_group=") - 1) == 0) {
             runas_group = *ui + sizeof("runas_group=") - 1;
+        }
+    }
+    for (ui = plugin_options; ui != NULL && *ui != NULL; ui++) {
+        if (strncmp(*ui, "yes", sizeof("yes") - 1) == 0) {
+            option_yes = 1;
+        }
+        if (strncmp(*ui, "noconfirm", sizeof("noconfirm") - 1) == 0) {
+            option_noconfirm = 1;
         }
     }
     if (runas_user != NULL) {
@@ -82,13 +92,26 @@ approval_check(char * const command_info[], char * const run_argv[],
     }
     sudo_log(LOG_MSG_TYPE, "\n\n");
 
+    if (option_noconfirm) {
+        return 1;
+    }
+
     memset(&msg, 0, sizeof(msg));
     msg.msg_type = SUDO_CONV_PROMPT_ECHO_ON
                    | SUDO_CONV_PROMPT_ECHO_OK
                    | SUDO_CONV_PREFER_TTY;
+
     msg.msg = "Confirm? [y/N] ";
+    if (option_yes) {
+        msg.msg = "Confirm? [Y/n] ";
+    }
+
     memset(&repl, 0, sizeof(repl));
     sudo_conv(1, &msg, &repl, NULL);
+
+    if (option_yes && strlen(repl.reply) == 0) {
+        return 1;
+    }
 
     if (repl.reply != NULL
         && (strcmp(repl.reply, "y") == 0 || strcmp(repl.reply, "Y") == 0)) {
