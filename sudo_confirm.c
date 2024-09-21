@@ -1,5 +1,5 @@
 #include <string.h>
-#include <limits.h>
+#include <ctype.h>
 #include <grp.h>
 #include <pwd.h>
 
@@ -77,7 +77,7 @@ approval_open(unsigned int version, sudo_conv_t conversation,
     return 1;
 }
 
-static int 
+static int
 approval_check(char * const command_info[], char * const run_argv[],
                char * const run_envp[], const char **errstr)
 {
@@ -88,7 +88,37 @@ approval_check(char * const command_info[], char * const run_argv[],
              "Executing as uid %d(%s) and gid %d(%s) with sudo:\n\n   ",
              runas_uid, runas_user, runas_gid, runas_group);
     for(char * const *ui = run_argv; *ui != NULL; ui++) {
-        sudo_log(LOG_MSG_TYPE, " %s", *ui);
+        int should_quote = 0;
+        for(char const *i = *ui; *i != '\0'; i++) {
+            if (!isascii(*i) || iscntrl(*i) || *i == ' '
+                || *i == '"' || *i == '\\'
+            ) {
+                should_quote = 1;
+            }
+        }
+        sudo_log(LOG_MSG_TYPE, " ");
+        if (should_quote) {
+            sudo_log(LOG_MSG_TYPE, "\"");
+        }
+        for(char const *i = *ui; *i != '\0'; i++) {
+            if (*i == '"' || *i == '\\'
+                || !isascii(*i) || iscntrl(*i)
+            ) {
+                sudo_log(LOG_MSG_TYPE, "\\");
+                if(*i == '"' || *i == '\\') {
+                    sudo_log(LOG_MSG_TYPE, "%c", *i);
+                }
+                else {
+                    sudo_log(LOG_MSG_TYPE, "x%02x", 0xff&*i);
+                }
+            }
+            else {
+                sudo_log(LOG_MSG_TYPE, "%c", *i);
+            }
+        }
+        if (should_quote) {
+            sudo_log(LOG_MSG_TYPE, "\"");
+        }
     }
     sudo_log(LOG_MSG_TYPE, "\n\n");
 
